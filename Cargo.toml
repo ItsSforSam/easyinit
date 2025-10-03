@@ -1,6 +1,48 @@
-[package]
-name = "easyinit"
-version = "0.1.0"
+[workspace]
+resolver = "3"
+[workspace.package]
+version = "0.0.0" # keep at "0.0.0" for until alpha release
+#no workspace description each crate should have a purpose.
+publish = false
+license = "LGPL-3.0-or-later"
+categories = ["init","linux"]
+repository = "https://github.com/ItsSforSam/easyinit"
 edition = "2024"
 
+
+[package]
+name = "easyinit"
+description = "An alternative init system for Linux"
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+publish.workspace = true
+categories.workspace = true
+
 [dependencies]
+
+signal-hook = "0.3.18"
+tokio = {version = "1.47.1",features = ["full"]}
+
+[workspace.dependencies]
+libc = "0.2.176"
+nix = "0.30.1"
+
+anyhow = {version = "1",features = ["backtrace"]}
+thiserror = "2.0.17"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+missing-unsafe-on-extern = "deny"
+unsafe-attr-outside-unsafe = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+
+[workspace.lints.clippy]
+doc_broken_link="deny"
+allow_attributes_without_reason = "warn"
+# I don't like using forbid, but using unsafe functions need justification, then and there.
+# Shouldn't be separated to multiple commits
+# and it should be something 
+undocumented_unsafe_block = "forbid"
+missing_safety_docs = "forbid"
