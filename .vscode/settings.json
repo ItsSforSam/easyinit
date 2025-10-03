@@ -1,0 +1,16 @@
+{
+    "cSpell.words": [
+        "easyinit",
+        "libc",
+        "makedepends",
+        "noextract",
+        "pacman's",
+        "PKGBUILD",
+        "pkgdesc",
+        "pkgname",
+        "pkgrel",
+        "pkgver",
+        "unbootable"
+    ],
+    "rust-analyzer.check.command": "clippy"
+}
