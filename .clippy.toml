@@ -1,0 +1,5 @@
+# cSpell:disable
+
+
+avoid-breaking-exported-api = false
+check-private-items = true
