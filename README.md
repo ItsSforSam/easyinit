@@ -3,8 +3,8 @@
 An alternative init system and service manager for Linux
 
 # Packaging Guidelines
-> Since the software is still in development and not released, please don't package EasyInit
-> in the current state.
+> ⚠️ Since the software is still in development and not released, please don't package EasyInit
+> in the current state. ⚠️ 
 
 Install it in `/sbin` directory.
 If the init is the one that ships with the distribution, add a symlink pointing to the executable,
