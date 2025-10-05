@@ -1,8 +1,11 @@
 {
     "cSpell.words": [
         "clippy",
+        "easyctl",
         "easyinit",
+        "easyinitlib",
         "libc",
+        "loglevel",
         "makedepends",
         "noextract",
         "pacman's",
@@ -11,7 +14,10 @@
         "pkgname",
         "pkgrel",
         "pkgver",
-        "unbootable"
+        "SIGPWR",
+        "thiserror",
+        "unbootable",
+        "zbus"
     ],
     "rust-analyzer.check.command": "clippy"
 }
