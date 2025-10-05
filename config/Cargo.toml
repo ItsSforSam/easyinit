@@ -1,6 +1,6 @@
 [package]
-name = "easyinit-kern-cmdline"
-description = "Parse the kernel command line for easyinit options"
+name = "easyinit-config"
+description = "Parses command line arguments, config files"
 version.workspace = true
 publish.workspace = true
 license.workspace = true
