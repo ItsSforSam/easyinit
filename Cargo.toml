@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["kern_cmdline","logging"]
+members = [ "api", "cmdline","config","logging"]
 [workspace.package]
 version = "0.0.0" # keep at "0.0.0" for until alpha release
 #no workspace description each crate should have a purpose.
@@ -22,14 +22,20 @@ publish.workspace = true
 categories.workspace = true
 
 [dependencies]
-
+libc.workspace = true
 signal-hook = "0.3.18"
 tokio = {version = "1.47.1",features = ["full"]}
+nix = { workspace = true, features = ["mount"]}
+
+logging = { package = "easyinit-logging", path = "logging" }
+config =  { package = "easyinit-config" , path = "config" }
 
 [workspace.dependencies]
 libc = "0.2.176"
 nix = "0.30.1"
 log = "0.4.28"
+zbus = { version = "5.11.0", features = ["tokio"] }
+
 
 anyhow = {version = "1",features = ["backtrace"]}
 thiserror = "2.0.17"
