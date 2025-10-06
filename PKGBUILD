@@ -1,37 +1,43 @@
-# This is an example PKGBUILD file. Use this as a start to creating your own,
-# and remove these comments. For more information, see 'man PKGBUILD'.
-# NOTE: Please fill out the license field for your package! If it is unknown,
-# then please put 'unknown'.
 
-# The following guidelines are specific to BZR, GIT, HG and SVN packages.
-# Other VCS sources are not natively supported by makepkg yet.
-
-# Maintainer: Your Name <youremail@domain.com>
-pkgname=NAME-VCS # '-bzr', '-git', '-hg' or '-svn'
+# Maintainer: SforSam <81501696+ItsSforSam@users.noreply.github.com>
+_pkgname="easyinit"
+pkgname="${_pkgname}-git" # '-bzr', '-git', '-hg' or '-svn'
 pkgver=VERSION
-pkgrel=1
-pkgdesc=""
-arch=()
-url=""
-license=('GPL')
+# pkgrel=1
+pkgdesc="An alternative"
+arch=('i686' 'x86_64' 'armv6h' 'armv7h') 
+url="https://github.com/ItsSforSam/easyinit"
+license=("LGPL-3.0-or-later")
 groups=()
 depends=()
-makedepends=('VCS_PACKAGE') # 'bzr', 'git', 'mercurial' or 'subversion'
-provides=("${pkgname%-VCS}")
-conflicts=("${pkgname%-VCS}")
-replaces=()
-backup=()
-options=()
-install=
-source=('FOLDER::VCS+URL#FRAGMENT')
+makedepends=("git","cargo") # 'bzr', 'git', 'mercurial' or 'subversion'
+provides=("easyinit=${pkgver}")
+# when we are stable and have a stable package, we cannot have 
+conflicts=("easyinit")
+# replaces=()
+# backup=()
+# options=()
+# install=
+source=("${_pkgname}::git+https://github.com/ItsSforSam/easyinit.git")
 noextract=()
-sha256sums=('SKIP')
+sha256sums=("SKIP")
 
 # Please refer to the 'USING VCS SOURCES' section of the PKGBUILD man page for
 # a description of each element in the source array.
 
+# helper function to ensure we are using the correct environment variables to ensure we have everything where expected
+_export_env(){
+	# don't need to define the toolchain, we have the "rust-toolchain.toml" file
+	# export RUSTUP_TOOLCHAIN="stable"
+	export CARGO_TARGET_DIR="target"
+}
+# used to be passed into the --features flag into cargo.
+# storing into variable so tests, checks, and the final binaries use the same features
+#
+# comma separated with all the necessary features
+# _features=""
 pkgver() {
-	cd "$srcdir/${pkgname%-VCS}"
+	cd "$srcdir/${$_pkgname}"
 
 # The examples below are not absolute and need to be adapted to each repo. The
 # primary goal is to generate version numbers that will increase according to
@@ -39,40 +45,35 @@ pkgver() {
 # VERSION='VER_NUM.rREV_NUM.HASH', or a relevant subset in case VER_NUM or HASH
 # are not available, is recommended.
 
-# Bazaar
-	printf "r%s" "$(bzr revno)"
 
-# Git, tags available
-	printf "%s" "$(git describe --long | sed 's/\([^-]*-\)g/r\1/;s/-/./g')"
+# # Git, tags available
+# 	printf "%s" "$(git describe --long | sed 's/\([^-]*-\)g/r\1/;s/-/./g')"
 
 # Git, no tags available
 	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 
-# Mercurial
-	printf "r%s.%s" "$(hg identify -n)" "$(hg identify -i)"
-
-# Subversion
-	printf "r%s" "$(svnversion | tr -d 'A-z')"
 }
 
 prepare() {
-	cd "$srcdir/${pkgname%-VCS}"
-	patch -p1 -i "$srcdir/${pkgname%-VCS}.patch"
+	# https://wiki.archlinux.org/title/Rust_package_guidelines#Prepare
+	# the rustc
+	cd "$srcdir/${$_pkgname}"
+	cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+	
 }
 
 build() {
-	cd "$srcdir/${pkgname%-VCS}"
-	./autogen.sh
-	./configure --prefix=/usr
-	make
+	cd "$srcdir/${$_pkgname}"
+	cargo build --frozen --release # --features="${_features}"
 }
 
 check() {
-	cd "$srcdir/${pkgname%-VCS}"
-	make -k check
+	cd "$srcdir/${$_pkgname}"
+	cargo test --frozen # --features="${_features}"
 }
 
 package() {
-	cd "$srcdir/${pkgname%-VCS}"
-	make DESTDIR="$pkgdir/" install
+	install -Dm0755 -t "$pkgdir/sbin" "target/release/$_pkgname"
+	install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${_pkgname}/LICENSE"
+
 }
