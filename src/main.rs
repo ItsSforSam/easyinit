@@ -1,6 +1,6 @@
 pub mod util;
 mod signals;
-mod startup;
+
 fn main() -> ! {
     // signal_hook::flag::register(signal, flag);
 
