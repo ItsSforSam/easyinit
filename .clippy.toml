@@ -3,3 +3,9 @@
 
 avoid-breaking-exported-api = false
 check-private-items = true
+
+disallowed-methods = [
+    # This one only applies to the init process, but generally exitting early is bad practice
+    { path = "std::process::exit", reason = "Init process exiting causes a Kernel Panic, which can pontentally leaves system in inconsistant state", replacement = "easyinit::shutdown" },
+    { path = "std::process::abort", reason = "May leave system in inconsistant state, unrecovorable errors should panic", replacement = "std::panic" },
+]
