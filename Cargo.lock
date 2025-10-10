@@ -364,6 +364,9 @@ version = "0.0.0"
 [[package]]
 name = "utils"
 version = "0.0.0"
+dependencies = [
+ "nix",
+]
 
 [[package]]
 name = "wasi"
