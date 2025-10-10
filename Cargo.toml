@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [ "api", "cmdline","config","logging"]
+members = [ "api", "cmdline","config","logging", "system", "user", "utils"]
 [workspace.package]
 version = "0.0.0" # keep at "0.0.0" for until alpha release
 #no workspace description each crate should have a purpose.
@@ -25,7 +25,7 @@ categories.workspace = true
 libc.workspace = true
 signal-hook = "0.3.18"
 tokio = {version = "1.47.1",features = ["full"]}
-nix = { workspace = true, features = ["mount"]}
+nix = { workspace = true, features = ["mount","signal"]}
 
 logging = { package = "easyinit-logging", path = "logging" }
 config =  { package = "easyinit-config" , path = "config" }
@@ -54,3 +54,7 @@ allow_attributes_without_reason = "warn"
 # and it should be something 
 undocumented_unsafe_block = "forbid"
 missing_safety_docs = "forbid"
+
+[features]
+# NOT YET IMPLEMENTED
+selinux = []
