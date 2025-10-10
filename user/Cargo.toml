@@ -1,0 +1,13 @@
+[package]
+name = "easyinit-user"
+version.workspace = true
+publish.workspace = true
+license.workspace = true
+categories.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true
