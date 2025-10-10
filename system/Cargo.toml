@@ -8,6 +8,6 @@ repository.workspace = true
 edition.workspace = true
 
 [dependencies]
-
+nix = { workspace = true }
 [lints]
 workspace = true

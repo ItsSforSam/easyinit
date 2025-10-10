@@ -303,6 +303,9 @@ dependencies = [
 [[package]]
 name = "system"
 version = "0.0.0"
+dependencies = [
+ "nix",
+]
 
 [[package]]
 name = "thiserror"
