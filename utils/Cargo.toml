@@ -1,5 +1,5 @@
 [package]
-name = "utils"
+name = "easyinit-utils"
 version.workspace = true
 publish.workspace = true
 license.workspace = true
