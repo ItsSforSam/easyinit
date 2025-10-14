@@ -1,5 +1,6 @@
 [package]
-name = "system"
+name = "easyinit-system"
+description = "Handles the system scope of easyinit"
 version.workspace = true
 publish.workspace = true
 license.workspace = true
