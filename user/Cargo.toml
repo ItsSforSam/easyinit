@@ -1,5 +1,6 @@
 [package]
 name = "easyinit-user"
+description = "Handles the user scope of easyinit"
 version.workspace = true
 publish.workspace = true
 license.workspace = true

@@ -16,7 +16,7 @@ pub fn mount_needed_fs(){
 
     
     ensure_mountpoint_safe(std::path::Path::new("/tmp")).expect("Failed to ensure /tmp is safe to mount on");
-    ensure_mountpoint_safe(std::path::Path::
+    
     mount(
         None::<&str>, // Errors Rust due to it cannot being inferred
         "/tmp",
