@@ -1,0 +1,15 @@
+[package]
+name = "journal"
+version.workspace = true
+publish.workspace = true
+license.workspace = true
+categories.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio.workspace = true
+thiserror.workspace = true
+utils   = { package = "easyinit-utils", path = "../utils" }
+[lints]
+workspace = true
