@@ -28,7 +28,7 @@ nix     = { workspace = true, features = ["mount","signal"]}
 utils   = { package = "easyinit-utils", path = "utils" }
 logging = { package = "easyinit-logging", path = "logging" }
 config  = { package = "easyinit-config" , path = "config" }
-
+panic-handler = { package = "easyinit-panic-handler", path = "panic-handler" }
 [workspace.dependencies]
 libc = "0.2.176"
 nix = "0.30.1"
