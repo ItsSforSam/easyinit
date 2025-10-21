@@ -66,6 +66,7 @@ version = "0.0.0"
 dependencies = [
  "easyinit-config",
  "easyinit-logging",
+ "easyinit-panic-handler",
  "easyinit-utils",
  "libc",
  "nix",
@@ -85,6 +86,13 @@ version = "0.0.0"
 dependencies = [
  "log",
  "thiserror",
+]
+
+[[package]]
+name = "easyinit-panic-handler"
+version = "0.0.0"
+dependencies = [
+ "backtrace",
 ]
 
 [[package]]
