@@ -22,5 +22,6 @@
         "unbootable",
         "zbus"
     ],
-    "rust-analyzer.check.command": "clippy"
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.workspace": true
 }
