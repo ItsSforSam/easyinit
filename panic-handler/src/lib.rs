@@ -4,7 +4,6 @@
 // use std::sync::atomic::{AtomicPtr,Ordering};
 // static PANIC_INNER: AtomicPtr<fn(&std::panic::PanicHookInfo) -> !> = AtomicPtr::new(std::ptr::null_mut());
 
-use std::ops::Add;
 
 thread_local! {
     static PANIC_PROTECTION:std::cell::RefCell<u8> = const {std::cell::RefCell::new(0)}
