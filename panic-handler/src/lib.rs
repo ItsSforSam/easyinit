@@ -4,6 +4,8 @@
 // use std::sync::atomic::{AtomicPtr,Ordering};
 // static PANIC_INNER: AtomicPtr<fn(&std::panic::PanicHookInfo) -> !> = AtomicPtr::new(std::ptr::null_mut());
 
+use std::io::{stderr, stdout, Write};
+use std::ffi::{OsStr, OsString};
 
 thread_local! {
     static PANIC_PROTECTION:std::cell::RefCell<u8> = const {std::cell::RefCell::new(0)}
@@ -15,22 +17,67 @@ pub fn switch_panic(){
 /// The panic handler
 #[cold]
 fn panic_handler(info: &std::panic::PanicHookInfo) {
+    let mut err = stderr().lock();
+    // flushing the standard outputs, we don't need stdout handles
+    let _ = stdout().flush();
+    let _ = err.flush();
     PANIC_PROTECTION.with(|p| {
         let mut v =  p.borrow_mut();
         if *v > 0 {
-            eprint!("");
-            // reentrant panic, abort
-            #[expect(clippy::disallowed_methods, reason = "Cannot panic, recurring panic would cause recursion in panic handler, which would stack overflow")]
-            std::process::abort();
+            // Ignoring further errors as not much can be done and
+            // if we use use eprintln! then it could possibly panic
+            let _ = err.write_all("Recursive panic detected, aborting".as_bytes());
+            abort();
         } else {
             *v += 1;
         }
     });
+    
+    
     // BACKTRACING NOW
     let panic_msg = format!("{:?}", &info.payload());
-    eprintln!("PANIC: {}", &panic_msg);
+    eprintln!("Panic occurred: {}", panic_msg);
+    
+    // let mut 
     backtrace::trace(|frame| {
-        todo!()
+        let ip = frame.ip();
+        let addr = frame.symbol_address();
+        backtrace::resolve_frame(frame, |sym|{
+            let name: String = format!("{}", 
+                sym.name()
+                .unwrap_or(
+                    backtrace::SymbolName::new(b"<unknown symbol>")
+                )
+            );
+
+            let filename= sym.filename().map_or_else(||{std::path::Path::new("<unknown file>")},|file|{
+                  // Usually is filename is known then lineno is known too, but the "typically" in the docs is making worry of using unwrap_unchecked
+                let linno = sym.lineno().unwrap_or(0); 
+                let path_str = format!("`{:#?}` at {linno}",file.display());
+                std::path::Path::new(
+                        &path_str
+                )
+            }).as_os_str();
+            
+            
+        });
+        
+
+        true // continue tracing
+
     });
 
+}
+/// When using aborting panic
+fn abort_panic(){
+
+}
+/// Wrapper around [`std::process::abort`] to avoid having to use [expect attribute] with [`clippy::disallowed_methods`]
+/// 
+/// [expect attribute]: https://doc.rust-lang.org/reference/attributes/diagnostics.html#r-attributes.diagnostics.lint.expect
+/// [`clippy::disallowed_methods`]: https://doc.rust-lang.org/clippy/lint_configuration.html#disallowed-methods
+#[expect(clippy::disallowed_methods, reason = "Only crate allowed to call abort")]
+#[inline]
+fn abort() -> ! {
+    std::process::abort();
 }
