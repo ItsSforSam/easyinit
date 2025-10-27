@@ -5,7 +5,8 @@
 // static PANIC_INNER: AtomicPtr<fn(&std::panic::PanicHookInfo) -> !> = AtomicPtr::new(std::ptr::null_mut());
 
 use std::io::{stderr, stdout, Write};
-use std::ffi::{OsStr, OsString};
+// use std::ffi::{OsStr, OsString};
+
 
 thread_local! {
     static PANIC_PROTECTION:std::cell::RefCell<u8> = const {std::cell::RefCell::new(0)}
@@ -26,17 +27,24 @@ fn panic_handler(info: &std::panic::PanicHookInfo) {
         if *v > 0 {
             // Ignoring further errors as not much can be done and
             // if we use use eprintln! then it could possibly panic
-            let _ = err.write_all("Recursive panic detected, aborting".as_bytes());
+            // If recursive panic detected, we should attempt to write the panic message
+            let _ = err.write_all(format!("Recursive panic message: {:?}\n", payload_as_str(info)).as_bytes());
+            let _ = err.write_all("Recursive panic detected, aborting\n".as_bytes());
             abort();
         } else {
             *v += 1;
         }
     });
     
-    
     // BACKTRACING NOW
-    let panic_msg = format!("{:?}", &info.payload());
-    eprintln!("Panic occurred: {}", panic_msg);
+    // Currently info returns only Some varient, but stated it may return None in future
+    let plocation = info.location().expect("Location cannot be determined");
+    
+    
+    let _ = err.write_all(format!("Panic occurred at {} on line {}\n",
+                                 plocation.file(),
+                                plocation.line(),
+                            ).as_bytes());
     
     // let mut 
     backtrace::trace(|frame| {
@@ -49,18 +57,21 @@ fn panic_handler(info: &std::panic::PanicHookInfo) {
                     backtrace::SymbolName::new(b"<unknown symbol>")
                 )
             );
-
-            let filename= sym.filename().map_or_else(||{std::path::Path::new("<unknown file>")},|file|{
-                  // Usually is filename is known then lineno is known too, but the "typically" in the docs is making worry of using unwrap_unchecked
-                let linno = sym.lineno().unwrap_or(0); 
-                let path_str = format!("`{:#?}` at {linno}",file.display());
-                std::path::Path::new(
-                        &path_str
-                )
-            }).as_os_str();
-            
-            
+    
+            let filename= match sym.filename() {
+                Some(f) => {
+                    let path_str = f.display();
+                    if let Some(l) = sym.lineno() {
+                        format!("{} at line {}",path_str,l)
+                    } else {
+                        format!("{} at <unknown line>",path_str)
+                    }
+                },
+                None => "<unknown file>".to_string(),
+            };
+            let _ = err.write_all(format!("{}",filename).as_bytes());
         });
+        
         
 
         true // continue tracing
@@ -80,4 +91,16 @@ fn abort_panic(){
 #[inline]
 fn abort() -> ! {
     std::process::abort();
+}
+/// Pollyfill for [`PanicHookInfo::payload_as_str`][std::panic::PanicHookInfo::payload_as_str]
+///
+#[inline]
+pub fn payload_as_str<'a>(info: &'a std::panic::PanicHookInfo<'_>) -> Option<&'a str> {
+    if let Some(s) = info.payload().downcast_ref::<&str>() {
+        Some(s)
+    } else if let Some(s) = info.payload().downcast_ref::<String>() {
+        Some(s)
+    } else {
+        None
+    }
 }
