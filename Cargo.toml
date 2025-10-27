@@ -40,6 +40,10 @@ zbus = { version = "5.11.0", features = ["tokio"] }
 anyhow = {version = "1",features = ["backtrace"]}
 thiserror = "2.0.17"
 
+[features]
+# NOT YET IMPLEMENTED
+selinux = []
+
 [workspace.lints.rust]
 missing_docs = "warn"
 missing-unsafe-on-extern = "deny"
@@ -55,6 +59,3 @@ allow_attributes_without_reason = "warn"
 undocumented_unsafe_block = "forbid"
 missing_safety_docs = "forbid"
 
-[features]
-# NOT YET IMPLEMENTED
-selinux = []
