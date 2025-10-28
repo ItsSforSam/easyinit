@@ -138,7 +138,7 @@ fn sysrq(cmd:SysRqCommand){
 
 /// Tells the kernel to shutdown the system
 /// 
-/// # Safety:
+/// # Safety
 /// This does not sync files, umount filesystems, or anything else.
 /// It just tells the kernel to shutdown. Use with caution.
 unsafe fn kernel_shutdown()->!{
