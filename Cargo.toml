@@ -42,7 +42,7 @@ zbus = { version = "5.11.0", features = ["tokio"] }
 cfg-if = "1"
 anyhow = {version = "1",features = ["backtrace"]}
 thiserror = "2.0.17"
-
+chrono = { default-features = false, version = "0.4.42"} 
 [features]
 # Default should be considered something that is the most portable. 
 default = ["coreutils"]
