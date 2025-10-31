@@ -10,5 +10,10 @@ edition.workspace = true
 
 [dependencies]
 log.workspace = true
+cfg-if.workspace = true
+nix = {workspace = true, features = ["fs"]}
 [lints]
 workspace = true
+
+[features]
+coreutils = []
