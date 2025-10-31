@@ -23,7 +23,7 @@ pub fn mount_needed_fs(){
         Some("tmpfs"),
         MsFlags::MS_MGC_VAL | MsFlags::MS_NOEXEC | MsFlags::MS_NOSUID | MsFlags::MS_NODEV | MsFlags::MS_RELATIME
         
-        ,"usrquota"
+        ,Some("usrquota")
     ).unwrap_or_else(|e|{handle_needed_fs_errors(e, "/tmp", "tmpfs");});
     
     ensure_mountpoint_safe(std::path::Path::new("/run")).expect("Failed to ensure /run is safe to mount on");
