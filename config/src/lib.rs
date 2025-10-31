@@ -1,9 +1,11 @@
 //! Parses the kernel's command line and 
+mod crash_file_gen;
+
 // cSpell:words Cmdline
 use std::fs::File;
-use std::io::prelude::*;
 use log::LevelFilter;
-
+use std::path::PathBuf;
+use std::sync::LazyLock;
 
 /// Represents parameters passed to easyinit via the kernel command line.
 #[derive(Debug)]
@@ -18,8 +20,22 @@ pub struct Cmdline{
     /// Default is Warning level (3)
     pub loglevel: LevelFilter,
 
-    
 
+    /// An init system crashing is bad news. So a crash report should be generated if the is the case.
+    /// 
+    /// Uses the `easyinit.crash-prefix` options. Gets ignored if `easyinit.crash-path` option is set
+    /// 
+    /// The default is `/var/log/`
+    /// The default should be fine with a system compliant with [LHS].
+    /// 
+    /// 
+    /// 
+    /// [LHS]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
+    pub crash_report_prefix: PathBuf,
+    /// The crash report is a system
+    /// 
+    /// Uses the 
+    crash_report_file: LazyLock<PathBuf>
     
 }
 impl Cmdline{
@@ -40,12 +56,31 @@ impl Cmdline{
 
         r
     }
+
+    pub fn crash_report_path(&self) -> PathBuf{
+        todo!()
+        
+    }
 }
 impl Default for Cmdline{
     /// Returns the default options for `Cmdline`.
     fn default()->Self{
+        let prefix =  PathBuf::from("/var/log/");
+        
         Cmdline {
-            loglevel: LevelFilter::Warn
+            loglevel: LevelFilter::Warn,
+            crash_report_prefix:prefix,
+            crash_report_file: todo!(),
+            // crash_report_file: LazyLock::new(&||{crash_file_gen::gen_filename(&prefix)}),
+            
         }
     }
+}
+/// The idea that is that, is it implicitly set in the command line, or 
+#[derive(Debug,PartialEq, Eq, PartialOrd, Ord)]
+pub enum IsSet<T>{ // TODO: Better name
+    Implicit(T),
+    Explicit(T),
+    /// Find it out when needed
+    Lazily
 }
