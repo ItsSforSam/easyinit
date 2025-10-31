@@ -1,7 +1,7 @@
 
 # Maintainer: SforSam <81501696+ItsSforSam@users.noreply.github.com>
 _pkgname="easyinit"
-pkgname="${_pkgname}-git" # '-bzr', '-git', '-hg' or '-svn'
+pkgname="${_pkgname}-git"  # '-bzr', '-git', '-hg' or '-svn'
 pkgver=VERSION
 # pkgrel=1
 pkgdesc="An alternative"
@@ -9,7 +9,7 @@ arch=('i686' 'x86_64' 'armv6h' 'armv7h')
 url="https://github.com/ItsSforSam/easyinit"
 license=("LGPL-3.0-or-later")
 groups=()
-depends=()
+depends=("coreutils","util-linux","dbus")
 makedepends=("git","cargo") # 'bzr', 'git', 'mercurial' or 'subversion'
 provides=("easyinit=${pkgver}")
 # when we are stable and have a stable package, we cannot have 
