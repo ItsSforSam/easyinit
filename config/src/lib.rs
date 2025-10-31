@@ -29,12 +29,12 @@ pub struct Cmdline{
     /// The default should be fine with a system compliant with [LHS].
     /// 
     /// 
-    /// 
     /// [LHS]: https://refspecs.linuxfoundation.org/FHS_3.0/fhs/index.html
-    pub crash_report_prefix: PathBuf,
+    crash_report_prefix: PathBuf,
     /// The crash report is a system
     /// 
-    /// Uses the 
+    /// Uses the `easyinit.crash-path` and preferred over the crash prefix option, 
+    /// and if used it uses a set path and overwrites any existing file.
     crash_report_file: LazyLock<PathBuf>
     
 }
@@ -50,9 +50,12 @@ impl Cmdline{
     /// Uses a specific file as the source of the command line.
     /// 
     /// Used for testing.
-    pub fn use_file(f:File)->Self{
+    pub fn use_file(mut f: File)->Self{
         let mut r = Cmdline::default();
-        
+        let mut buf = String::new();
+        f.read_to_string(&mut buf);
+
+        std::fs::read_to_string(f);
 
         r
     }
@@ -70,11 +73,15 @@ impl Default for Cmdline{
         Cmdline {
             loglevel: LevelFilter::Warn,
             crash_report_prefix:prefix,
-            crash_report_file: todo!(),
+            crash_report_file: LazyLock::new(||{ crash_file_gen(&prefix)})
             // crash_report_file: LazyLock::new(&||{crash_file_gen::gen_filename(&prefix)}),
             
         }
     }
+}
+
+pub enum CrashFile{
+
 }
 /// The idea that is that, is it implicitly set in the command line, or 
 #[derive(Debug,PartialEq, Eq, PartialOrd, Ord)]
