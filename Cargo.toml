@@ -29,21 +29,25 @@ utils   = { package = "easyinit-utils", path = "utils" }
 logging = { package = "easyinit-logging", path = "logging" }
 config  = { package = "easyinit-config" , path = "config" }
 panic-handler = { package = "easyinit-panic-handler", path = "panic-handler" }
+
+
 [workspace.dependencies]
 libc = "0.2.176"
 nix = "0.30.1"
 log = "0.4.28"
 tokio = {version = "1.47.1",features = ["full"]}
 zbus = { version = "5.11.0", features = ["tokio"] }
-
-
+# 
+# chrono = {version = "0.4.42", default-features = false, features = ["std","now"]}
+cfg-if = "1"
 anyhow = {version = "1",features = ["backtrace"]}
 thiserror = "2.0.17"
 
 [features]
 # Default should be considered something that is the most portable. 
-
-default = []
+default = ["coreutils"]
+# Uses Linux coreutils, expected to be GNU, other implementations are "allowed"
+coreutils = ["config/coreutils"]
 # NOT YET IMPLEMENTED
 selinux = []
 
