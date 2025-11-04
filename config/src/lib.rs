@@ -6,7 +6,7 @@ use std::fs::File;
 use log::LevelFilter;
 use std::path::PathBuf;
 use std::sync::LazyLock;
-
+use std::io::prelude::*;
 /// Represents parameters passed to easyinit via the kernel command line.
 #[derive(Debug)]
 #[non_exhaustive]
@@ -45,17 +45,15 @@ impl Cmdline{
     /// 
     /// Panics if `/proc/cmdline` cannot be opened.
     pub fn new()->Self{
-        Cmdline::use_file(File::open("/proc/cmdline").expect("Cannot open `/proc/cmdline`"))
+        Cmdline::use_file("/proc/cmdline".as_ref())
     }
     /// Uses a specific file as the source of the command line.
     /// 
     /// Used for testing.
-    pub fn use_file(mut f: File)->Self{
+    pub fn use_file(path:&std::path::Path)->Self{
         let mut r = Cmdline::default();
-        let mut buf = String::new();
-        f.read_to_string(&mut buf);
 
-        std::fs::read_to_string(f);
+        let buf = std::fs::read_to_string(path);
 
         r
     }
@@ -73,7 +71,7 @@ impl Default for Cmdline{
         Cmdline {
             loglevel: LevelFilter::Warn,
             crash_report_prefix:prefix,
-            crash_report_file: LazyLock::new(||{ crash_file_gen(&prefix)})
+            crash_report_file: todo!()
             // crash_report_file: LazyLock::new(&||{crash_file_gen::gen_filename(&prefix)}),
             
         }
