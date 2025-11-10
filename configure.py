@@ -59,8 +59,25 @@ def get_parser() -> argparse.ArgumentParser:
         type=Path,
         metavar="PATH"
     )
+    parser.add_argument(
+    "--systemd",
+    help="Allow systemd integration. Default is when systemd is detected on the system. ()",
+    default=is_systemd(),
+    action=OptionalFeature,
+    )
     return parser
 
+
+def is_systemd() -> bool:
+    """
+    Check if systemd is available on this system
+    
+    If systemctl is in PATH, we assume systemd is available.
+    This is to prevent leaving a system stranded without proper service files.
+
+    """
+    import shutil
+    return shutil.which("systemctl") is not None
 
 class OptionalFeature(argparse.Action):
     """
@@ -150,7 +167,14 @@ def parse_conf(conf:list[str])->Conf:
 
 
 def generate_makefile(conf:Conf, parsed:argparse.Namespace) -> None:
-    ... # TODO: implement
+    f= f"""
+    # A generated Makefile for Easyinit. Don't edit this file directly!
+    # any issues with this file should be investigated in configure.py
+    RUSTC = {conf.rustc}
+    CARGO = {conf.cargo}
+    PREFIX = {parsed.prefix}
+    # FLAGS := 
+    """
 
 if __name__ == "__main__":
     main()
