@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = [ "api", "cmdline","config", "journal","logging", "system", "user", "utils"]
+members = [ "api", "cmdline","config", "journald","logging", "system", "user", "utils"]
 [workspace.package]
 version = "0.0.0" # keep at "0.0.0" for until alpha release
 #no workspace description each crate should have a purpose.
