@@ -18,6 +18,7 @@
         "pkgname",
         "pkgrel",
         "pkgver",
+        "rustc",
         "sigaction",
         "SIGPWR",
         "thiserror",
@@ -25,5 +26,5 @@
         "zbus"
     ],
     "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.check.workspace": true
+    "rust-analyzer.check.workspace": true,
 }
