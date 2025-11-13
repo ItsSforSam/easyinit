@@ -8,11 +8,17 @@ import sys
 import tomllib
 import argparse
 import importlib
+from functools import wraps
 logging = importlib.import_module("tools.py-logging") # allows importing from tools/py-logging
 
-ROOT = Path(os.path.dirname(__file__))
+
 __version__ = "0.0.1"
 
+if t.TYPE_CHECKING:
+    T = t.TypeVar("T")
+
+ROOT = Path(os.path.dirname(__file__))
+# CSpell: words BUILDABLES
 BUILDABLES = [ "easyinit", "easyctl", "journald"]
 """
 Packages that are provided
@@ -32,21 +38,28 @@ def main():
         l.setLevel(logging.l.DEBUG)
     generate_makefile(conf, parsed)
     
+def noprame_cache(f:t.Callable[[],T])->t.Callable[[],T]:
+    """
+    Used for caching where it does not take any parameters
 
+    Reason to use this:
+    When a function may be called multiple times and can be expensive to calculate.
+    Like, calling a external program to retrieve the host triple.
+
+    """
+    _sent = object()
+    cached = _sent
+    @wraps(f)
+    def wrapper() -> T:
+        nonlocal _sent, cached
+        if cached is _sent:
+            cached = f()
+        return cached
+    return wrapper
 def get_version() -> str:
     with open(ROOT / "Cargo.toml", "rb") as f:
         data = tomllib.load(f)
     return data["workspace"]["package"]["version"]
-
-# def setup_logger():
-#     import logging
-#     logger = logging.getLogger("configure")
-#     handler = logging.StreamHandler()
-#     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-#     handler.setFormatter(formatter)
-#     logger.addHandler(handler)
-#     logger.setLevel(logging.INFO)
-#     return logger
 
 def eprint(*args, **kwargs):
     file = kwargs.pop("file", sys.stderr)
@@ -96,8 +109,44 @@ def get_parser() -> argparse.ArgumentParser:
     default=is_systemd(),
     action=OptionalFeature,
     )
+    parser.add_argument(
+        "--frozen", "--offline",
+        help="Build without accessing the network. Passes --frozen to cargo. Recommend to pass `prefetch` target before compiling",
+        action="store_true",
+        dest="frozen",
+    )
+    parser.add_argument(
+        "--target",
+        help="Set the compilation target triple. Default is the host system's triple.",
+        type=str,
+        metavar="TARGET-TRIPLE"
+    )
+    parser.add_argument(
+        "--debug", "--no-release",
+        help="Disable release mode on compiling flags",
+        action="store_true",
+        dest="debug"
+    )
+    parser.add_argument(
+        "--native",
+        action="store_true",
+        help="Compiles optimizing for the current cpu. This "
+    )
     return parser
 
+@noprame_cache
+def get_host_triple() -> str:
+    l.debug("Determining host triple using rustc")
+    import subprocess
+    
+    result = subprocess.run(["rustc", "-vV"], capture_output=True, text=True, encoding="UTF-8", check=True)
+    l.debug(f"rustc result:\n{result}")
+    for line in result.stdout.splitlines():
+        if line.startswith("host:"):
+            host = line.split(":", 1)[1].strip()
+            l.debug(f"Host determined to be `{host}`")
+            return host
+    raise RuntimeError("Could not determine host triple from rustc output.")
 
 def is_systemd() -> bool:
     """
@@ -202,7 +251,14 @@ def parse_conf(conf:list[str])->Conf:
     return Conf(**options)
 
 def gen_flags(parsed:argparse.Namespace) -> str:
-    flags = ["--release","--no-default-features",]
+    # So all errors are collected together and propagate at once
+    err:t.Sequence[Exception] = []
+
+    flags = ["--no-default-features",]
+    
+    if not parsed.debug:
+        flags.append("--release")
+
     features = []
     if parsed.selinux:
         features.append("selinux")
@@ -213,50 +269,97 @@ def gen_flags(parsed:argparse.Namespace) -> str:
     if len(features) != 0:
         f= ",".join(features)
         flags.append(f"--features={f}")
+
+    if parsed.frozen:
+        flags.append("--frozen")
+    
+    if parsed.native and parsed.target is not None:
+        err.append(InvalidArgumentsError("Cannot specify to compile natively and custom target"))
+    else: # skip this if it has invalid state for both values
+        if parsed.native:
+            # cSpell: disable-next-line
+            flags.append("-Ctarget-cpu=native")
+        else:
+            flags.append("--target")
+            if parsed.target is None:
+                parsed.target = get_host_triple()
+            flags.append(parsed.target)
+
+
+    if err: raise err # raise them here before return
     return " ".join(flags)
 def rtarget() -> str:
     global BUILDABLES
     b = []
     for build in BUILDABLES:
-        b.append(f"$(RTARGET)/{build}")
+        b.append(f"$(BUILD_DIR)/{build}")
     return " ".join(b)
 def gen_buildables(parsed:argparse.Namespace) -> str:
     global BUILDABLES
     i = []
     for b in BUILDABLES:
-        """
-$RTARGET/{b}:
-        """
+        i.append(f"""
+$(BUILD_DIR)/{b}:
+@echo "Building {b}"
+\t$(CARGO) build -p {b} $(FLAGS)
+        """)
     return "\n".join(i)
 def gen_install(parsed:argparse.Namespace) -> str:
     global BUILDABLES
     i = []
     for b in BUILDABLES:
         """
-install-{b}: {b}
-\t
+install-{b}: $(BUILD_DIR)/{b}
+\tinstall -Dm0755 -t $(prefix)/sbin
         """
     return "\n".join(i)
 def generate_makefile(conf:Conf, parsed:argparse.Namespace) -> None:
+    global BUILDABLES
+    install_targets = [f"{x}-install" for x in BUILDABLES]
+    phoney = " ".join(BUILDABLES) + " " + " ".join(install_targets)
+    profile = "debug" if parsed.debug else "release"
     f= f"""
 # A generated Makefile for Easyinit. Don't edit this file directly!
 # any issues with this file should be investigated in configure.py
-RUSTC = {conf.rustc}
-CARGO = {conf.cargo}
-PREFIX = {parsed.prefix}
+RUSTC ?= {conf.rustc}
+CARGO ?= {conf.cargo}
+PREFIX ?= {parsed.prefix}
 FLAGS := {gen_flags(parsed)}
-RTARGET := target/release/
+BUILD_DIR := target/{profile}
+TARGET ?= {parsed.target}
+
+
 all: {rtarget()}
 \t $(CARGO) build $(FLAGS)
 
-install: all
+{gen_buildables(parsed)}
 
-.PHONY: install
+install: all ;
+
+
+clean:
+\t$(CARGO) clean
+
+pre-fetch:
+\t$(CARGO) fetch --locked --target $(TARGET)
+
+.PHONY: install {phoney} clean pre-fetch
 """
     l.info(f"Writing Makefile to {parsed.output}")
     l.info(f"Makefile contents:\n{f}")
     with open(parsed.output, "w") as mf:
         mf.write(f)
+
+
+
+class InvalidArgumentsError(RuntimeError):
+    """
+    Errors if the user passes invalid flags to the process
+
+    Like passing custom target then specifying that the program should optimize
+    for the current system
+    """
+
 
 if __name__ == "__main__":
     main()
